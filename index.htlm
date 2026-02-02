@@ -27,7 +27,7 @@
     localStorage.setItem("session_id", sessionId);
   }
 
-  const webhookUrl = https://hook.make.com/https://hook.eu1.make.com/gtp3ev2lmkcxbt8tos0rnr3q9xf6b5jg;
+  const webhookUrl = "https://hook.make.com/gtp3ev2lmkcxbt8tos0rnr3q9xf6b5jg";
 
   function addMessage(text, cls) {
     const div = document.createElement("div");
