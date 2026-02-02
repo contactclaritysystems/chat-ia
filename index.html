@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Clarity Systems</title>
-
 <style>
 * { box-sizing: border-box; margin:0; padding:0; }
 
@@ -35,18 +34,23 @@ header {
   border-bottom: 1px solid #e0e0e0;
 }
 
-.logo {
-  max-width: 120px;
+.logo-container {
+  width: 120px;  /* largeur fixe du logo */
+  height: auto;
+}
+
+.logo-container img {
   width: 100%;
   height: auto;
   display: block;
-  margin: 0 auto;
+  border-radius: 6px;
 }
 
 #messages {
   flex: 1;
   padding: 14px;
   overflow-y: auto;
+  font-size: 16px;
 }
 
 .msg {
@@ -54,7 +58,6 @@ header {
   padding: 12px 16px;
   border-radius: 14px;
   max-width: 85%;
-  font-size: 16px;
   line-height: 1.5;
   word-wrap: break-word;
 }
@@ -112,7 +115,9 @@ button:active { opacity: 0.8; }
 <div id="chat-container">
 
   <header>
-    <img src="https://i.imgur.com/dmbzdjL.jpeg" alt="Clarity Systems" class="logo">
+    <div class="logo-container">
+      <img src="https://i.imgur.com/dmbzdjL.jpeg" alt="Clarity Systems">
+    </div>
   </header>
 
   <div id="messages"></div>
