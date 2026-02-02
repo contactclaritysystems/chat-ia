@@ -44,6 +44,15 @@ header {
   margin: 0 auto;
 }
 
+#welcome {
+  text-align: center;
+  padding: 10px 20px;
+  background: #e0f7fa;
+  font-size: 16px;
+  color: #00796b;
+  font-weight: 500;
+}
+
 #messages {
   flex: 1;
   padding: 20px;
@@ -131,8 +140,13 @@ button:active { opacity: 0.8; }
 <div id="chat-container">
 
   <header>
-    <img src="https://i.imgur.com/ca27J7e.jpg" alt="Clarity Systems" class="logo">
+    <img src="https://i.imgur.com/ca27J7e.jpg?v=2" alt="Clarity Systems" class="logo">
   </header>
+
+  <!-- Message de bienvenue hors bulle -->
+  <div id="welcome">
+    Bonjour, vous avez contacté la société Clarity Systems. En quoi puis-je vous aider ?
+  </div>
 
   <div id="messages"></div>
 
@@ -160,9 +174,6 @@ function addMessage(text, cls) {
   messagesDiv.appendChild(div);
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
-
-// Message de bienvenue
-addMessage("Bonjour, vous avez contacté la société Clarity Systems. En quoi puis-je vous aider ?", "ia");
 
 function send() {
   const input = document.getElementById("input");
