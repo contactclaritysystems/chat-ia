@@ -2,31 +2,132 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Chat IA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clarity Systems – Chat</title>
+
   <style>
-    body { font-family: Arial; background:#f5f5f5; }
-    #chat { max-width:600px; margin:40px auto; background:#fff; padding:20px; border-radius:8px; }
-    .msg { margin-bottom:10px; }
-    .user { font-weight:bold; }
-    .ia { color:#333; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* HEADER */
+    header {
+      background: #ffffff;
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+
+    header img {
+      max-height: 50px;
+    }
+
+    /* CHAT CONTAINER */
+    #chat {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #ffffff;
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* MESSAGES */
+    #messages {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+    }
+
+    .msg {
+      margin-bottom: 12px;
+      font-size: 16px;
+      line-height: 1.4;
+    }
+
+    .user {
+      font-weight: bold;
+      color: #000;
+    }
+
+    .ia {
+      color: #333;
+    }
+
+    /* INPUT AREA */
+    #input-area {
+      display: flex;
+      padding: 10px;
+      border-top: 1px solid #ddd;
+      background: #fafafa;
+    }
+
+    #input {
+      flex: 1;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    button {
+      margin-left: 10px;
+      padding: 12px 16px;
+      font-size: 16px;
+      border: none;
+      background: #000;
+      color: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #333;
+    }
+
+    /* MOBILE OPTIMISATION */
+    @media (max-width: 600px) {
+      .msg {
+        font-size: 17px;
+      }
+
+      header img {
+        max-height: 45px;
+      }
+    }
   </style>
 </head>
+
 <body>
+
+<header>
+  <img src="https://i.imgur.com/dmbzdjL.jpeg" alt="Clarity Systems Logo">
+</header>
 
 <div id="chat">
   <div id="messages"></div>
-  <input id="input" placeholder="Écrivez votre message…" style="width:80%">
-  <button onclick="send()">Envoyer</button>
+
+  <div id="input-area">
+    <input id="input" placeholder="Écrivez votre message…" />
+    <button onclick="send()">Envoyer</button>
+  </div>
 </div>
 
 <script>
-  // 1️⃣ Session ID invisible
+  /* SESSION ID */
   let sessionId = localStorage.getItem("session_id");
   if (!sessionId) {
     sessionId = Date.now() + "-" + Math.random().toString(36).substring(2);
     localStorage.setItem("session_id", sessionId);
   }
 
+  /* WEBHOOK MAKE */
   const webhookUrl = "https://hook.eu1.make.com/gtp3ev2lmkcxbt8tos0rnr3q9xf6b5jg";
 
   function addMessage(text, cls) {
@@ -34,11 +135,21 @@
     div.className = "msg " + cls;
     div.innerText = text;
     document.getElementById("messages").appendChild(div);
+    div.scrollIntoView({ behavior: "smooth" });
   }
 
+  /* MESSAGE DE BIENVENUE */
+  window.onload = function () {
+    addMessage(
+      "Bonjour, vous avez contacté la société Clarity SYSTEMS. En quoi puis-je vous aider ?",
+      "ia"
+    );
+  };
+
+  /* ENVOI MESSAGE */
   function send() {
     const input = document.getElementById("input");
-    const message = input.value;
+    const message = input.value.trim();
     if (!message) return;
 
     addMessage("Vous : " + message, "user");
@@ -54,9 +165,23 @@
     })
     .then(r => r.json())
     .then(data => {
-      addMessage("IA : " + data.reply, "ia");
+      if (data.reply) {
+        addMessage("IA : " + data.reply, "ia");
+      } else {
+        addMessage("IA : Une erreur est survenue.", "ia");
+      }
+    })
+    .catch(() => {
+      addMessage("IA : Impossible de contacter le serveur.", "ia");
     });
   }
+
+  /* ENVOI AVEC ENTRÉE */
+  document.getElementById("input").addEventListener("keypress", function (e) {
+    if (e.key === "Enter") {
+      send();
+    }
+  });
 </script>
 
 </body>
