@@ -8,8 +8,8 @@
 * { box-sizing: border-box; margin:0; padding:0; }
 
 body {
-  font-family: Arial, sans-serif;
-  background: #f2f2f2;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f0f2f5;
   display: flex;
   justify-content: center;
   padding: 12px;
@@ -19,11 +19,11 @@ body {
   background: #fff;
   width: 100%;
   max-width: 420px;
-  border-radius: 12px;
+  border-radius: 16px;
   display: flex;
   flex-direction: column;
   height: 90vh;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
   overflow: hidden;
 }
 
@@ -32,19 +32,19 @@ header {
   justify-content: center;
   align-items: center;
   padding: 15px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid #ddd;
+  background: #075e54;
 }
 
 .logo {
   width: 300px;
   height: auto;
-  display: block;
-  border-radius: 6px;
+  border-radius: 12px;
 }
 
 #messages {
   flex: 1;
-  padding: 20px;
+  padding: 16px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -58,18 +58,20 @@ header {
   line-height: 1.5;
   word-wrap: break-word;
   font-size: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  animation: fadeIn 0.3s ease;
 }
 
 .user {
   align-self: flex-end;
-  background: #007bff;
+  background: #4fc3f7;
   color: #fff;
   border-bottom-right-radius: 4px;
 }
 
 .ia {
   align-self: flex-start;
-  background: #eeeeee;
+  background: #e0e0e0;
   color: #333;
   border-bottom-left-radius: 4px;
 }
@@ -77,9 +79,9 @@ header {
 #input-area {
   display: flex;
   padding: 16px;
-  background: #f0f0f0;
-  border-top: 1px solid #ccc;
-  gap: 8px;
+  background: #f7f7f7;
+  border-top: 1px solid #ddd;
+  gap: 10px;
 }
 
 #input {
@@ -88,6 +90,12 @@ header {
   font-size: 16px;
   border-radius: 24px;
   border: 1px solid #ccc;
+  outline: none;
+}
+
+#input:focus {
+  border-color: #4fc3f7;
+  box-shadow: 0 0 5px rgba(79,195,247,0.5);
 }
 
 button {
@@ -98,9 +106,15 @@ button {
   border-radius: 24px;
   font-size: 16px;
   cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 button:active { opacity: 0.8; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px);}
+  to { opacity: 1; transform: translateY(0);}
+}
 
 @media (max-width: 600px) {
   #chat-container { height: 95vh; }
