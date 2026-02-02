@@ -1,111 +1,111 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Clarity Systems</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clarity Systems</title>
 
-  <style>
-    * { box-sizing: border-box; }
+<style>
+* { box-sizing: border-box; margin:0; padding:0; }
 
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f2f2f2;
-      display: flex;
-      justify-content: center;
-      padding: 12px;
-    }
+body {
+  font-family: Arial, sans-serif;
+  background: #f2f2f2;
+  display: flex;
+  justify-content: center;
+  padding: 12px;
+}
 
-    #chat-container {
-      background: #ffffff;
-      width: 100%;
-      max-width: 420px;
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      height: 90vh;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
+#chat-container {
+  background: #fff;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  height: 90vh;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
 
-    header {
-      text-align: center;
-      padding: 12px 0;
-      border-bottom: 1px solid #e0e0e0;
-    }
+header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
 
-    .logo {
-      max-width: 120px;
-      width: 100%;
-      height: auto;
-      display: block;
-      margin: 0 auto;
-      border-radius: 6px;
-    }
+.logo {
+  max-width: 120px;
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
 
-    #messages {
-      flex: 1;
-      padding: 14px;
-      overflow-y: auto;
-    }
+#messages {
+  flex: 1;
+  padding: 14px;
+  overflow-y: auto;
+}
 
-    .msg {
-      margin-bottom: 12px;
-      padding: 12px 16px;
-      border-radius: 14px;
-      max-width: 85%;
-      font-size: 16px;
-      line-height: 1.5;
-      word-wrap: break-word;
-    }
+.msg {
+  margin-bottom: 12px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  max-width: 85%;
+  font-size: 16px;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
 
-    .user {
-      background: #007bff;
-      color: #fff;
-      margin-left: auto;
-      text-align: right;
-    }
+.user {
+  background: #007bff;
+  color: #fff;
+  margin-left: auto;
+  text-align: right;
+}
 
-    .ia {
-      background: #eeeeee;
-      color: #333;
-      margin-right: auto;
-    }
+.ia {
+  background: #eeeeee;
+  color: #333;
+  margin-right: auto;
+}
 
-    #input-area {
-      display: flex;
-      padding: 10px;
-      border-top: 1px solid #e0e0e0;
-      gap: 8px;
-    }
+#input-area {
+  display: flex;
+  padding: 12px;
+  border-top: 1px solid #e0e0e0;
+  gap: 8px;
+}
 
-    #input {
-      flex: 1;
-      padding: 12px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
+#input {
+  flex: 1;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
 
-    button {
-      padding: 12px 16px;
-      border: none;
-      background: #007bff;
-      color: #fff;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-    }
+button {
+  padding: 14px 16px;
+  border: none;
+  background: #007bff;
+  color: #fff;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}
 
-    button:active { opacity: 0.8; }
+button:active { opacity: 0.8; }
 
-    @media (max-width: 600px) {
-      #chat-container { height: 95vh; }
-      .msg { font-size: 15px; padding: 10px 14px; }
-      #input { font-size: 15px; padding: 10px; }
-      button { font-size: 15px; padding: 10px 14px; }
-    }
-  </style>
+@media (max-width: 600px) {
+  #chat-container { height: 95vh; }
+  .msg { font-size: 15px; padding: 10px 14px; }
+  #input { font-size: 15px; padding: 12px; }
+  button { font-size: 15px; padding: 12px 14px; }
+}
+</style>
 </head>
 <body>
 
@@ -125,58 +125,57 @@
 </div>
 
 <script>
-  // Session unique
-  let sessionId = localStorage.getItem("session_id");
-  if (!sessionId) {
-    sessionId = Date.now() + "-" + Math.random().toString(36).substring(2);
-    localStorage.setItem("session_id", sessionId);
-  }
+let sessionId = localStorage.getItem("session_id");
+if (!sessionId) {
+  sessionId = Date.now() + "-" + Math.random().toString(36).substring(2);
+  localStorage.setItem("session_id", sessionId);
+}
 
-  const webhookUrl = "https://hook.eu1.make.com/gtp3ev2lmkcxbt8tos0rnr3q9xf6b5jg";
-  const messagesDiv = document.getElementById("messages");
+const webhookUrl = "https://hook.eu1.make.com/gtp3ev2lmkcxbt8tos0rnr3q9xf6b5jg";
+const messagesDiv = document.getElementById("messages");
 
-  function addMessage(text, cls) {
-    const div = document.createElement("div");
-    div.className = "msg " + cls;
-    div.innerText = text;
-    messagesDiv.appendChild(div);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-  }
+function addMessage(text, cls) {
+  const div = document.createElement("div");
+  div.className = "msg " + cls;
+  div.innerText = text;
+  messagesDiv.appendChild(div);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
 
-  // Message de bienvenue
-  addMessage("Bonjour, vous avez contacté la société Clarity Systems. En quoi puis-je vous aider ?", "ia");
+// Message de bienvenue
+addMessage("Bonjour, vous avez contacté la société Clarity Systems. En quoi puis-je vous aider ?", "ia");
 
-  function send() {
-    const input = document.getElementById("input");
-    const message = input.value.trim();
-    if (!message) return;
+function send() {
+  const input = document.getElementById("input");
+  const message = input.value.trim();
+  if (!message) return;
 
-    addMessage(message, "user");
-    input.value = "";
+  addMessage(message, "user");
+  input.value = "";
 
-    fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        session_id: sessionId,
-        message: message
-      })
+  fetch(webhookUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      session_id: sessionId,
+      message: message
     })
-    .then(res => res.json())
-    .then(data => {
-      if (data.reply) {
-        addMessage(data.reply, "ia");
-      }
-    })
-    .catch(() => {
-      addMessage("Une erreur est survenue. Merci de réessayer.", "ia");
-    });
-  }
-
-  // Envoi avec "Entrée"
-  document.getElementById("input").addEventListener("keypress", function(e) {
-    if (e.key === "Enter") send();
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.reply) {
+      addMessage(data.reply, "ia");
+    }
+  })
+  .catch(() => {
+    addMessage("Une erreur est survenue. Merci de réessayer.", "ia");
   });
+}
+
+// Envoi avec Entrée
+document.getElementById("input").addEventListener("keypress", function(e) {
+  if (e.key === "Enter") send();
+});
 </script>
 
 </body>
