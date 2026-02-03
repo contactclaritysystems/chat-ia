@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Clarity Systems Chat</title>
+
 <style>
 body {
   font-family: Arial, sans-serif;
@@ -36,8 +37,6 @@ header {
 .logo {
   width: 300px;
   height: auto;
-  display: block;
-  margin: 0 auto;
 }
 
 #messages {
@@ -48,10 +47,9 @@ header {
   flex-direction: column;
   gap: 12px;
   font-size: 16px;
-  line-height: 1.5;
 }
 
-  /* Messages */
+/* Messages */
 .message {
   padding: 10px 14px;
   border-radius: 10px;
@@ -60,15 +58,15 @@ header {
 
 /* Assistant */
 .assistant {
-  color: #1f4fd8;
   background: #f3f6ff;
+  color: #1f4fd8;
   align-self: flex-start;
 }
 
 /* Utilisateur */
 .user {
-  color: #222;
   background: #f0f0f0;
+  color: #222;
   align-self: flex-end;
 }
 
@@ -86,34 +84,25 @@ header {
   font-size: 16px;
   border-radius: 8px;
   border: 1px solid #ccc;
-  outline: none;
-  -webkit-text-size-adjust: 100%; /* empêche zoom iOS */
 }
 
 button {
   padding: 14px 16px;
   border: none;
   background: #007bff;
-  color: #fff;
+  color: white;
   border-radius: 8px;
   font-size: 16px;
   cursor: pointer;
 }
-button:active { opacity: 0.8; }
-
-@media (max-width: 600px) {
-  #chat-container { height: 95vh; }
-  #messages { font-size: 15px; }
-  #input { font-size: 15px; }
-  button { font-size: 15px; }
-}
 </style>
 </head>
+
 <body>
 
 <div id="chat-container">
   <header>
-    <img src="https://i.imgur.com/ca27J7e.jpg" alt="Clarity Systems" class="logo">
+    <img src="https://i.imgur.com/ca27J7e.jpg" class="logo">
   </header>
 
   <div id="messages"></div>
@@ -125,14 +114,14 @@ button:active { opacity: 0.8; }
 </div>
 
 <script>
+const messagesDiv = document.getElementById("messages");
+const webhookUrl = "https://hook.eu1.make.com/gtp3ev2lmkcxbt8tos0rnr3q9xf6b5jg";
+
 let sessionId = localStorage.getItem("session_id");
 if (!sessionId) {
-  sessionId = Date.now() + "-" + Math.random().toString(36).substring(2);
+  sessionId = Date.now() + "-" + Math.random().toString(36).slice(2);
   localStorage.setItem("session_id", sessionId);
 }
-
-const webhookUrl = "https://hook.eu1.make.com/gtp3ev2lmkcxbt8tos0rnr3q9xf6b5jg";
-const messagesDiv = document.getElementById("messages");
 
 function addMessage(text, sender) {
   const div = document.createElement("div");
@@ -142,34 +131,37 @@ function addMessage(text, sender) {
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
-// Message d'accueil
-addMessage("Assistant : Bonjour, vous avez contacté45 la société Clarity Systems. En quoi puis-je vous aider ?");
+// Message d’accueil
+addMessage(
+  "Bonjour, vous avez contacté la société Clarity Systems. En quoi puis-je vous aider ?",
+  "assistant"
+);
 
 function send() {
   const input = document.getElementById("input");
   const message = input.value.trim();
   if (!message) return;
 
-  addMessage("Vous : " + message);
+  addMessage(message, "user");
   input.value = "";
 
   fetch(webhookUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ session_id: sessionId, message: message })
+    body: JSON.stringify({ session_id: sessionId, message })
   })
   .then(res => res.json())
   .then(data => {
     if (data.reply) {
-      addMessage("Assistant : " + data.reply);
+      addMessage(data.reply, "assistant");
     }
   })
   .catch(() => {
-    addMessage("Assistant : Une erreur est survenue. Merci de réessayer.");
+    addMessage("Une erreur est survenue. Merci de réessayer.", "assistant");
   });
 }
 
-document.getElementById("input").addEventListener("keypress", function(e) {
+document.getElementById("input").addEventListener("keydown", e => {
   if (e.key === "Enter") send();
 });
 </script>
