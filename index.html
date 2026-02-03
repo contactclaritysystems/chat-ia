@@ -157,35 +157,27 @@ button:active {
 const webhookUrl = "https://hook.eu1.make.com/gtp3ev2lmkcxbt8tos0rnr3q9xf6b5jg";
 const messagesDiv = document.getElementById("messages");
 
-// Gestion de la session
 let sessionId = localStorage.getItem("session_id");
 if (!sessionId) {
   sessionId = Date.now() + "-" + Math.random().toString(36).substring(2);
   localStorage.setItem("session_id", sessionId);
 }
 
-// Fonction pour ajouter un message dans le chat
 function addMessage(text, sender) {
   const div = document.createElement("div");
   div.className = "message " + sender;
-
-  // Remplacer les retours à la ligne par <br> et transformer les URLs en liens cliquables
-  div.innerHTML = text
-    .replace(/\n/g, "<br>")
-    .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
-
+  div.textContent = text;
   messagesDiv.appendChild(div);
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
   return div;
 }
 
-// Message d’accueil
+/* Message d’accueil */
 addMessage(
-  "Bonjour, vous avez 22contacté la société Clarity Systems. En quoi puis-je vous aider ?",
+  "Bonjour, vous avez contacté la société Clarity Systems. En quoi puis-je vous aider ?",
   "assistant"
 );
 
-// Fonction pour envoyer le message utilisateur
 function send() {
   const input = document.getElementById("input");
   const message = input.value.trim();
@@ -194,14 +186,12 @@ function send() {
   addMessage(message, "user");
   input.value = "";
 
-  // Indicateur de typing
   const typing = document.createElement("div");
   typing.className = "typing";
   typing.textContent = "L’assistant est en train d’écrire…";
   messagesDiv.appendChild(typing);
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
-  // Appel webhook Make
   fetch(webhookUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -210,17 +200,7 @@ function send() {
   .then(res => res.json())
   .then(data => {
     typing.remove();
-
-    // Si Make renvoie un tableau de messages
-    if (Array.isArray(data)) {
-      data.forEach(d => {
-        if (d.reply) addMessage(d.reply, "assistant");
-      });
-    } 
-    // Sinon un seul objet JSON
-    else if (data.reply) {
-      addMessage(data.reply, "assistant");
-    }
+    if (data.reply) addMessage(data.reply, "assistant");
   })
   .catch(() => {
     typing.remove();
@@ -228,7 +208,6 @@ function send() {
   });
 }
 
-// Envoi sur Enter
 document.getElementById("input").addEventListener("keypress", e => {
   if (e.key === "Enter") send();
 });
