@@ -203,29 +203,31 @@ function send() {
 
   // Appel webhook Make
   fetch(webhookUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ session_id: sessionId, message })
-  })
-  .then(res => res.json())
-  .then(data => {
-    typing.remove();
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ session_id: sessionId, message })
+})
+.then(async res => {
+  let data;
+  try {
+    data = await res.json(); // essaie de parser JSON
+  } catch {
+    // si JSON invalide, prends le texte brut
+    data = { reply: await res.text() };
+  }
 
-    // Si Make renvoie un tableau de messages
-    if (Array.isArray(data)) {
-      data.forEach(d => {
-        if (d.reply) addMessage(d.reply, "assistant");
-      });
-    } 
-    // Sinon un seul objet JSON
-    else if (data.reply) {
-      addMessage(data.reply, "assistant");
-    }
-  })
-  .catch(() => {
-    typing.remove();
-    addMessage("Une erreur est survenue. Merci de réessayer.", "assistant");
-  });
+  typing.remove();
+
+  if (Array.isArray(data)) {
+    data.forEach(d => { if (d.reply) addMessage(d.reply, "assistant"); });
+  } else if (data.reply) {
+    addMessage(data.reply, "assistant");
+  }
+})
+.catch(() => {
+  typing.remove();
+  addMessage("Une erreur est survenue. Merci de réessayer.", "assistant");
+});
 }
 
 // Envoi sur Enter
