@@ -3,123 +3,126 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Clarity Systems Chat</title>
+<title>Clarity Systems – Chat</title>
 
 <style>
-/* Base */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 body {
-  font-family: Arial, sans-serif;
-  background: #eef1f6;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  background: #f0f2f5;
   display: flex;
   justify-content: center;
   padding: 20px;
 }
 
-/* Conteneur principal */
 #chat-container {
-  background: #ffffff;
   width: 100%;
   max-width: 420px;
   height: 90vh;
+  background: #ffffff;
   border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
   overflow: hidden;
 }
 
-/* Header */
+/* HEADER */
 header {
   padding: 16px;
-  text-align: center;
   border-bottom: 1px solid #e0e0e0;
+  text-align: center;
 }
 
 .logo {
   width: 260px;
   max-width: 100%;
+  height: auto;
   display: block;
   margin: 0 auto;
 }
 
-/* Zone messages */
+/* MESSAGES */
 #messages {
   flex: 1;
-  padding: 20px;
+  padding: 18px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  font-size: 16px;
-  line-height: 1.5;
 }
 
-/* Bulles */
-.message {
-  padding: 12px 16px;
-  border-radius: 16px;
-  max-width: 80%;
-  animation: fadeIn 0.25s ease-in;
+.msg {
+  max-width: 75%;
+  padding: 14px 18px;
+  border-radius: 18px;
+  font-size: 15px;
+  line-height: 1.5;
+  word-wrap: break-word;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  animation: fadeIn 0.25s ease;
+}
+
+.msg strong {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 4px;
+  opacity: 0.7;
 }
 
 /* Assistant */
 .assistant {
-  background: #209DB5;     /* BLEU LOGO */
-  color: #ffffff;
   align-self: flex-start;
-}
-
-/* Utilisateur */
-.user {
-  background: #f0f0f0;
+  background: #e9edf1;
   color: #222;
+  border-top-left-radius: 4px;
+}
+
+/* User */
+.user {
   align-self: flex-end;
+  background: linear-gradient(135deg, #007bff, #0056d6);
+  color: #fff;
+  border-top-right-radius: 4px;
 }
 
-/* Indicateur écriture */
-.typing {
-  font-style: italic;
-  color: #888;
-  font-size: 14px;
-  margin-left: 6px;
-}
-
-/* Zone saisie */
+/* INPUT */
 #input-area {
   display: flex;
-  align-items: center;
-  padding: 16px;
-  gap: 10px;
+  padding: 14px;
   border-top: 1px solid #e0e0e0;
   background: #fafafa;
+  gap: 10px;
 }
 
 #input {
   flex: 1;
-  padding: 14px;
-  font-size: 16px;
-  border-radius: 10px;
+  padding: 14px 18px;
+  font-size: 15px;
+  border-radius: 24px;
   border: 1px solid #ccc;
   outline: none;
-  -webkit-text-size-adjust: 100%;
 }
 
-/* Bouton */
+#input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0,123,255,0.15);
+}
+
 button {
-  padding: 12px 14px;
-  width: 90px;
+  padding: 14px 20px;
   border: none;
-  background: #209DB5;     /* BLEU LOGO */
-  color: white;
-  border-radius: 10px;
+  border-radius: 24px;
+  background: #25d366;
+  color: #fff;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  flex-shrink: 0;
-}
-
-button:hover {
-  background: #1b889c;
 }
 
 button:active {
@@ -128,12 +131,8 @@ button:active {
 
 /* Animation */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-@media (max-width: 600px) {
-  #chat-container { height: 95vh; }
 }
 </style>
 </head>
@@ -141,74 +140,49 @@ button:active {
 <body>
 
 <div id="chat-container">
+
   <header>
-    <img src="https://i.imgur.com/ca27J7e.jpg" class="logo" alt="Clarity Systems">
+    <img src="https://i.imgur.com/ca27J7e.jpg" alt="Clarity Systems" class="logo">
   </header>
 
   <div id="messages"></div>
 
   <div id="input-area">
-    <input id="input" placeholder="Écrivez votre message…" />
+    <input id="input" type="text" placeholder="Écrivez votre message…" />
     <button onclick="send()">Envoyer</button>
   </div>
+
 </div>
 
 <script>
-const webhookUrl = "https://hook.eu1.make.com/gtp3ev2lmkcxbt8tos0rnr3q9xf6b5jg";
 const messagesDiv = document.getElementById("messages");
+const input = document.getElementById("input");
 
-let sessionId = localStorage.getItem("session_id");
-if (!sessionId) {
-  sessionId = Date.now() + "-" + Math.random().toString(36).substring(2);
-  localStorage.setItem("session_id", sessionId);
-}
+// Message d’accueil
+addMessage("Bonjour, vous avez contacté la société Clarity Systems. En quoi puis-je vous aider ?", "assistant");
 
-function addMessage(text, sender) {
-  const div = document.createElement("div");
-  div.className = "message " + sender;
-  div.textContent = text;
-  messagesDiv.appendChild(div);
+function addMessage(text, type) {
+  const msg = document.createElement("div");
+  msg.className = "msg " + type;
+  msg.innerHTML = `<strong>${type === "assistant" ? "Assistant" : "Vous"}</strong>${text}`;
+  messagesDiv.appendChild(msg);
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
-  return div;
 }
-
-/* Message d’accueil */
-addMessage(
-  "Bonjour, vous avez contacté la société Clarity Systems. En quoi puis-je vous aider ?",
-  "assistant"
-);
 
 function send() {
-  const input = document.getElementById("input");
-  const message = input.value.trim();
-  if (!message) return;
+  const text = input.value.trim();
+  if (!text) return;
 
-  addMessage(message, "user");
+  addMessage(text, "user");
   input.value = "";
 
-  const typing = document.createElement("div");
-  typing.className = "typing";
-  typing.textContent = "L’assistant est en train d’écrire…";
-  messagesDiv.appendChild(typing);
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
-
-  fetch(webhookUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ session_id: sessionId, message })
-  })
-  .then(res => res.json())
-  .then(data => {
-    typing.remove();
-    if (data.reply) addMessage(data.reply, "assistant");
-  })
-  .catch(() => {
-    typing.remove();
-    addMessage("Une erreur est survenue. Merci de réessayer.", "assistant");
-  });
+  // Simulation réponse assistant (remplace par Make si besoin)
+  setTimeout(() => {
+    addMessage("Merci pour votre message. Pouvez-vous me donner plus de détails ?", "assistant");
+  }, 600);
 }
 
-document.getElementById("input").addEventListener("keypress", e => {
+input.addEventListener("keydown", e => {
   if (e.key === "Enter") send();
 });
 </script>
