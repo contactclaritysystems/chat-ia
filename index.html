@@ -6,6 +6,7 @@
 <title>Clarity Systems Chat</title>
 
 <style>
+/* Base */
 body {
   font-family: Arial, sans-serif;
   background: #eef1f6;
@@ -14,7 +15,7 @@ body {
   padding: 20px;
 }
 
-/* Conteneur */
+/* Conteneur principal */
 #chat-container {
   background: #ffffff;
   width: 100%;
@@ -37,9 +38,11 @@ header {
 .logo {
   width: 260px;
   max-width: 100%;
+  display: block;
+  margin: 0 auto;
 }
 
-/* Messages */
+/* Zone messages */
 #messages {
   flex: 1;
   padding: 20px;
@@ -51,7 +54,7 @@ header {
   line-height: 1.5;
 }
 
-/* Bulle */
+/* Bulles */
 .message {
   padding: 12px 16px;
   border-radius: 16px;
@@ -61,8 +64,8 @@ header {
 
 /* Assistant */
 .assistant {
-  background: #f3f6ff;
-  color: #1f4fd8;
+  background: #209DB5;     /* BLEU LOGO */
+  color: #ffffff;
   align-self: flex-start;
 }
 
@@ -81,9 +84,10 @@ header {
   margin-left: 6px;
 }
 
-/* Input */
+/* Zone saisie */
 #input-area {
   display: flex;
+  align-items: center;
   padding: 16px;
   gap: 10px;
   border-top: 1px solid #e0e0e0;
@@ -100,14 +104,22 @@ header {
   -webkit-text-size-adjust: 100%;
 }
 
+/* Bouton */
 button {
-  padding: 14px 18px;
+  padding: 12px 14px;
+  width: 90px;
   border: none;
-  background: linear-gradient(135deg, #1f4fd8, #3aa0ff);
+  background: #209DB5;     /* BLEU LOGO */
   color: white;
   border-radius: 10px;
-  font-size: 16px;
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
+  flex-shrink: 0;
+}
+
+button:hover {
+  background: #1b889c;
 }
 
 button:active {
@@ -160,13 +172,12 @@ function addMessage(text, sender) {
   return div;
 }
 
-// Message d’accueil
+/* Message d’accueil */
 addMessage(
   "Bonjour, vous avez contacté la société Clarity Systems. En quoi puis-je vous aider ?",
   "assistant"
 );
 
-// Envoi message
 function send() {
   const input = document.getElementById("input");
   const message = input.value.trim();
@@ -189,9 +200,7 @@ function send() {
   .then(res => res.json())
   .then(data => {
     typing.remove();
-    if (data.reply) {
-      addMessage(data.reply, "assistant");
-    }
+    if (data.reply) addMessage(data.reply, "assistant");
   })
   .catch(() => {
     typing.remove();
