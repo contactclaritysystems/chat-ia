@@ -55,7 +55,7 @@
 
   @keyframes cardIn {
     from { opacity: 0; transform: translateY(20px) scale(0.98); }
-    to   { opacity: 1; transform: translateY(0)    scale(1);    }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
   }
 
   /* ── Header ── */
@@ -68,6 +68,7 @@
     background: rgba(255,255,255,0.9);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+    flex-shrink: 0;
   }
 
   .header-sub {
@@ -79,8 +80,7 @@
   }
 
   .status-dot {
-    width: 8px;
-    height: 8px;
+    width: 8px; height: 8px;
     border-radius: 50%;
     background: #34c759;
     flex-shrink: 0;
@@ -120,11 +120,11 @@
 
   @keyframes msgIn {
     from { opacity: 0; transform: translateY(10px) scale(0.97); }
-    to   { opacity: 1; transform: translateY(0)    scale(1);    }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
   }
 
   .message.assistant { align-self: flex-start; }
-  .message.user      { align-self: flex-end;   }
+  .message.user      { align-self: flex-end; }
 
   .bubble {
     padding: 11px 16px;
@@ -157,6 +157,53 @@
 
   .message.user .msg-time { text-align: right; }
 
+  /* ── Boutons de choix ── */
+  .buttons-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+    max-width: 85%;
+    align-self: flex-start;
+    animation: msgIn 0.3s cubic-bezier(0.16,1,0.3,1) both;
+    animation-delay: 0.1s;
+  }
+
+  .choice-btn {
+    padding: 9px 16px;
+    border-radius: 20px;
+    border: 1.5px solid var(--blue);
+    background: #fff;
+    color: var(--blue);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, transform 0.12s;
+    white-space: nowrap;
+  }
+
+  .choice-btn:hover {
+    background: var(--blue);
+    color: #fff;
+  }
+
+  .choice-btn:active {
+    transform: scale(0.95);
+  }
+
+  .choice-btn:disabled,
+  .buttons-wrap.used .choice-btn {
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  .buttons-wrap.used .choice-btn.selected {
+    opacity: 1;
+    background: var(--blue);
+    color: #fff;
+  }
+
   /* ── Typing ── */
   .typing-bubble {
     align-self: flex-start;
@@ -181,7 +228,7 @@
 
   @keyframes bounce {
     0%,80%,100% { transform: translateY(0);    opacity: 0.45; }
-    40%          { transform: translateY(-5px); opacity: 1;    }
+    40%          { transform: translateY(-5px); opacity: 1; }
   }
 
   /* ── Input ── */
@@ -194,12 +241,13 @@
     display: flex;
     align-items: flex-end;
     gap: 10px;
+    flex-shrink: 0;
   }
 
   #input {
     flex: 1;
     padding: 12px 16px;
-    font-size: 16px; /* 16px minimum pour éviter le zoom iOS */
+    font-size: 16px;
     font-family: inherit;
     background: var(--bg);
     border: 1px solid var(--border);
@@ -278,6 +326,7 @@ const messagesDiv = document.getElementById("messages");
 const inputEl     = document.getElementById("input");
 const sendBtn     = document.getElementById("send-btn");
 
+// Session
 let sessionId = localStorage.getItem("session_id");
 if (!sessionId) {
   sessionId = Date.now() + "-" + Math.random().toString(36).substring(2);
@@ -288,8 +337,9 @@ function now() {
   return new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 }
 
+// Ajouter un message texte
 function addMessage(text, sender) {
-  const wrap   = document.createElement("div");
+  const wrap = document.createElement("div");
   wrap.className = "message " + sender;
 
   const bubble = document.createElement("div");
@@ -309,6 +359,45 @@ function addMessage(text, sender) {
   return wrap;
 }
 
+// Ajouter des boutons de choix
+function addButtons(options) {
+  // Supprimer les anciens boutons actifs s'il en reste
+  const existing = document.getElementById("active-buttons");
+  if (existing) existing.remove();
+
+  const wrap = document.createElement("div");
+  wrap.className = "buttons-wrap";
+  wrap.id = "active-buttons";
+
+  options.forEach(label => {
+    const btn = document.createElement("button");
+    btn.className = "choice-btn";
+    btn.textContent = label;
+    btn.onclick = () => handleChoice(label, wrap);
+    wrap.appendChild(btn);
+  });
+
+  messagesDiv.appendChild(wrap);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+// Quand l'utilisateur clique sur un bouton
+function handleChoice(label, wrap) {
+  // Marquer les boutons comme utilisés
+  wrap.id = "";
+  wrap.classList.add("used");
+  wrap.querySelectorAll(".choice-btn").forEach(b => {
+    if (b.textContent === label) b.classList.add("selected");
+  });
+
+  // Afficher comme message utilisateur
+  addMessage(label, "user");
+
+  // Envoyer au webhook
+  sendToWebhook(label);
+}
+
+// Typing indicator
 function showTyping() {
   const el = document.createElement("div");
   el.className = "typing-bubble";
@@ -323,20 +412,8 @@ function removeTyping() {
   if (el) el.remove();
 }
 
-addMessage("Bonjour, vous avez contacté la société Clarity Systems. En quoi puis-je vous aider ?", "assistant");
-
-inputEl.addEventListener("input", () => {
-  inputEl.style.height = "auto";
-  inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + "px";
-});
-
-function send() {
-  const message = inputEl.value.trim();
-  if (!message) return;
-
-  addMessage(message, "user");
-  inputEl.value = "";
-  inputEl.style.height = "auto";
+// Envoi au webhook Make
+function sendToWebhook(message) {
   sendBtn.disabled = true;
   showTyping();
 
@@ -349,12 +426,18 @@ function send() {
     let data;
     try { data = await res.json(); }
     catch { data = { reply: await res.text() }; }
+
     removeTyping();
-    if (Array.isArray(data)) {
-      data.forEach(d => { if (d.reply) addMessage(d.reply, "assistant"); });
-    } else if (data.reply) {
-      addMessage(data.reply, "assistant");
-    }
+
+    // Gérer tableau ou objet simple
+    const items = Array.isArray(data) ? data : [data];
+
+    items.forEach(item => {
+      if (item.reply) addMessage(item.reply, "assistant");
+      if (item.buttons && Array.isArray(item.buttons) && item.buttons.length > 0) {
+        addButtons(item.buttons);
+      }
+    });
   })
   .catch(() => {
     removeTyping();
@@ -366,6 +449,36 @@ function send() {
   });
 }
 
+// Envoi depuis le champ texte
+function send() {
+  const message = inputEl.value.trim();
+  if (!message) return;
+
+  // Désactiver les boutons actifs s'il y en a
+  const activeButtons = document.getElementById("active-buttons");
+  if (activeButtons) {
+    activeButtons.id = "";
+    activeButtons.classList.add("used");
+  }
+
+  addMessage(message, "user");
+  inputEl.value = "";
+  inputEl.style.height = "auto";
+
+  sendToWebhook(message);
+}
+
+// Auto-resize textarea
+inputEl.addEventListener("input", () => {
+  inputEl.style.height = "auto";
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + "px";
+});
+
+// Message d'accueil + boutons initiaux
+addMessage("Bonjour ! Vous avez essayé de joindre Clarity Systems tout à l'heure 📞\nJe suis l'assistant de l'équipe — je peux prendre note de votre besoin en 2 minutes et vous mettre en contact avec le bon interlocuteur. Ça vous convient ?", "assistant");
+addButtons(["C'est parti !", "Non merci"]);
+
+// Enter = envoyer
 inputEl.addEventListener("keydown", e => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
