@@ -474,11 +474,7 @@ async function step_role() {
   await botSay("Vous êtes dans quelle situation ?");
   addButtons(["Dirigeant / Patron", "Responsable / Manager", "Salarié", "Autre"], (choix) => {
     prospect.role = choix;
-    if (choix === "Salarié") {
-      setTimeout(() => step_non_qualifie_salarie(), 400);
-    } else {
-      setTimeout(() => step_besoin(), 400);
-    }
+    setTimeout(() => step_besoin(), 400);
   });
 }
 
@@ -505,14 +501,30 @@ async function step_taille() {
 }
 
 async function step_qualification() {
-  // Logique corrigée : qualifié = in_scope + pas salarié
-  const decisionOk = prospect.scope === "in_scope";
+  const inScope = prospect.scope === "in_scope";
+  const salarie = prospect.role === "Salarié";
 
-  if (!decisionOk) {
+  if (!inScope) {
     await step_hors_scope();
+  } else if (salarie) {
+    await step_salarie_inscope();
   } else {
-    await step_qualifie();
+    await step_urgence();
   }
+}
+
+async function step_salarie_inscope() {
+  await botSay("Votre besoin correspond bien à ce que nous faisons chez Clarity Systems 👍\nSeriez-vous en mesure d'en parler à votre dirigeant ?");
+  addButtons(["Je lui en parle !", "Je ne sais pas"], async (choix) => {
+    if (choix === "Je lui en parle !") {
+      await delay(400);
+      await botSay("Super ! N'hésitez pas à lui transmettre notre contact ou à nous recontacter ensemble. À très vite 😊");
+    } else {
+      await delay(400);
+      await botSay("Pas de souci ! N'hésitez pas à revenir vers nous quand vous le souhaitez 😊");
+    }
+    await envoyerAMake("non_qualifie");
+  });
 }
 
 async function step_qualifie() {
@@ -525,16 +537,6 @@ async function step_qualifie() {
 async function step_hors_scope() {
   await botSay("Merci pour ces précisions ! Honnêtement, votre besoin ne correspond pas à nos services — nous sommes spécialisés dans l'automatisation et les agents IA pour les dirigeants.\nJe ne voudrais pas vous faire perdre votre temps. N'hésitez pas à revenir vers nous si votre situation évolue 🙏");
   await envoyerAMake("hors_scope");
-}
-
-async function step_non_qualifie_salarie() {
-  await botSay("Merci pour votre temps ! Nous travaillons principalement avec des dirigeants sur des projets concrets. N'hésitez pas à en parler avec votre responsable et à nous recontacter si besoin 😊");
-  await envoyerAMake("non_qualifie");
-}
-
-async function step_non_qualifie_reflexion() {
-  await botSay("Merci pour votre temps ! Votre demande est bien notée. N'hésitez pas à nous recontacter quand votre projet est plus avancé — nous serons ravis d'échanger 😊");
-  await envoyerAMake("non_qualifie");
 }
 
 // ── Gestion de l'envoi texte libre (besoin) ─────────────
