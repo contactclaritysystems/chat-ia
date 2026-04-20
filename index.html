@@ -510,14 +510,19 @@ async function step_qualification() {
 }
 
 async function step_renseignement() {
-  await botSay("Bien sûr ! Pour mieux vous orienter, vous cherchez plutôt à gagner du temps sur des tâches administratives, ou à mettre en place un agent IA pour vos clients ?");
-  addButtons(["Tâches administratives", "Agent IA client", "Les deux", "Autre chose"], async (choix) => {
-    prospect.besoin = prospect.besoin + " → " + choix;
-    await delay(400);
-    if (prospect.role === "Salarié") {
-      await step_salarie_inscope();
+  await botSay("Chez Clarity Systems, nous aidons les entreprises à automatiser leurs tâches répétitives et à créer des agents IA sur mesure — emails, devis, relances, support client, agent vocal... Le tout pour faire gagner du temps aux dirigeants 🚀\nC'est ce type de solution qui vous intéresse ?");
+  addButtons(["Oui, tout à fait !", "Pas vraiment"], async (choix) => {
+    if (choix === "Pas vraiment") {
+      await delay(400);
+      await botSay("Pas de souci ! N'hésitez pas à nous recontacter si votre besoin évolue 😊");
+      await envoyerAMake("non_qualifie");
     } else {
-      await step_urgence();
+      await delay(400);
+      if (prospect.role === "Salarié") {
+        await step_salarie_inscope();
+      } else {
+        await step_urgence();
+      }
     }
   });
 }
