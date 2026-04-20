@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -281,6 +282,7 @@
     margin-left: 2px;
   }
 </style>
+
 </head>
 
 <body>
@@ -507,6 +509,24 @@ async function step_qualification() {
   }
 }
 
+async function step_devis() {
+  await botSay("Bien sûr ! Pour vous préparer un devis adapté, vous souhaitez automatiser quel type de tâche ?");
+  addButtons(["Emails / Communication", "Devis / Factures / Relances", "Agent IA client", "Agent vocal", "Autre"], async (choix) => {
+    prospect.besoin = prospect.besoin + " → " + choix;
+    await delay(400);
+    if (prospect.role === "Salarié") {
+      await step_salarie_inscope();
+    } else {
+      await botSay("Et votre projet, vous souhaitez le lancer plutôt quand ?");
+      addButtons(["Rapidement", "Dans les 3 mois", "Je réfléchis encore"], async (urgence) => {
+        prospect.urgence = urgence;
+        await delay(400);
+        await step_taille();
+      });
+    }
+  });
+}
+
 async function step_renseignement() {
   await botSay("Chez Clarity Systems, nous aidons les entreprises à automatiser leurs tâches répétitives et à créer des agents IA sur mesure — emails, devis, relances, support client, agent vocal... Le tout pour faire gagner du temps aux dirigeants 🚀\nC'est ce type de solution qui vous intéresse ?");
   addButtons(["Oui, tout à fait !", "Pas vraiment"], async (choix) => {
@@ -586,6 +606,8 @@ async function send() {
     await step_a_evaluer();
   } else if (prospect.intent === "renseignement") {
     await step_renseignement();
+  } else if (prospect.intent === "devis") {
+    await step_devis();
   } else if (prospect.role === "Salarié") {
     await step_salarie_inscope();
   } else {
