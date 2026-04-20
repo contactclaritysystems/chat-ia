@@ -501,16 +501,21 @@ async function step_taille() {
 }
 
 async function step_qualification() {
-  const inScope = prospect.scope === "in_scope";
   const salarie = prospect.role === "Salarié";
-
-  if (!inScope) {
-    await step_hors_scope();
-  } else if (salarie) {
+  if (salarie) {
     await step_salarie_inscope();
   } else {
-    await step_urgence();
+    await step_qualifie();
   }
+}
+
+async function step_renseignement() {
+  await botSay("Bien sûr ! Pour mieux vous orienter, vous cherchez plutôt à gagner du temps sur des tâches administratives, ou à mettre en place un agent IA pour vos clients ?");
+  addButtons(["Tâches administratives", "Agent IA client", "Les deux", "Autre chose"], async (choix) => {
+    prospect.besoin = prospect.besoin + " → " + choix;
+    await delay(400);
+    await step_urgence();
+  });
 }
 
 async function step_salarie_inscope() {
@@ -534,6 +539,11 @@ async function step_qualifie() {
   await envoyerAMake("qualifie");
 }
 
+async function step_a_evaluer() {
+  await botSay("C'est une demande que nous n'avons pas l'habitude de traiter, mais qui pourrait nous intéresser 🤔\nNotre équipe va étudier votre demande et reviendra vers vous rapidement pour voir si nous pouvons vous aider.");
+  await envoyerAMake("a_evaluer");
+}
+
 async function step_hors_scope() {
   await botSay("Merci pour ces précisions ! Honnêtement, votre besoin ne correspond pas à nos services — nous sommes spécialisés dans l'automatisation et les agents IA pour les dirigeants.\nJe ne voudrais pas vous faire perdre votre temps. N'hésitez pas à revenir vers nous si votre situation évolue 🙏");
   await envoyerAMake("hors_scope");
@@ -555,13 +565,25 @@ async function send() {
   showTyping();
   try {
     const result = await analyseBesoingGPT(message);
-    prospect.scope = result.scope;
+    prospect.scope  = result.scope;
+    prospect.intent = result.intent;
   } catch(e) {
-    prospect.scope = "in_scope"; // fallback si erreur GPT
+    prospect.scope  = "in_scope";
+    prospect.intent = "concret";
   }
   removeTyping();
 
-  await step_urgence();
+  if (prospect.scope === "hors_scope") {
+    await step_hors_scope();
+  } else if (prospect.scope === "a_evaluer") {
+    await step_a_evaluer();
+  } else if (prospect.role === "Salarié") {
+    await step_salarie_inscope();
+  } else if (prospect.intent === "renseignement") {
+    await step_renseignement();
+  } else {
+    await step_urgence();
+  }
 }
 
 // Auto-resize textarea
