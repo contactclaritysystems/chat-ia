@@ -393,7 +393,23 @@ function handleChoice(label, wrap) {
   // Afficher comme message utilisateur
   addMessage(label, "user");
 
-  // Envoyer au webhook
+  // Gérer les boutons initiaux localement sans appeler Make
+  if (label === "C'est parti !") {
+    setTimeout(() => {
+      addMessage("Vous êtes dans quelle situation ?", "assistant");
+      addButtons(["Dirigeant / Patron", "Responsable / Manager", "Salarié", "Autre"]);
+    }, 400);
+    return;
+  }
+
+  if (label === "Non merci") {
+    setTimeout(() => {
+      addMessage("Pas de souci ! N'hésitez pas à nous recontacter quand vous le souhaitez 😊", "assistant");
+    }, 400);
+    return;
+  }
+
+  // Tous les autres boutons → envoyer au webhook
   sendToWebhook(label);
 }
 
