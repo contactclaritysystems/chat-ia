@@ -505,14 +505,11 @@ async function step_taille() {
 }
 
 async function step_qualification() {
-  // Logique de qualification finale
+  // Logique corrigée : qualifié = in_scope + pas salarié
   const decisionOk = prospect.scope === "in_scope";
-  const urgenceOk  = prospect.urgence !== "Je réfléchis encore";
 
   if (!decisionOk) {
     await step_hors_scope();
-  } else if (!urgenceOk) {
-    await step_non_qualifie_reflexion();
   } else {
     await step_qualifie();
   }
