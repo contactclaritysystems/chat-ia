@@ -514,7 +514,11 @@ async function step_renseignement() {
   addButtons(["Tâches administratives", "Agent IA client", "Les deux", "Autre chose"], async (choix) => {
     prospect.besoin = prospect.besoin + " → " + choix;
     await delay(400);
-    await step_urgence();
+    if (prospect.role === "Salarié") {
+      await step_salarie_inscope();
+    } else {
+      await step_urgence();
+    }
   });
 }
 
@@ -577,10 +581,10 @@ async function send() {
     await step_hors_scope();
   } else if (prospect.scope === "a_evaluer") {
     await step_a_evaluer();
-  } else if (prospect.role === "Salarié") {
-    await step_salarie_inscope();
   } else if (prospect.intent === "renseignement") {
     await step_renseignement();
+  } else if (prospect.role === "Salarié") {
+    await step_salarie_inscope();
   } else {
     await step_urgence();
   }
