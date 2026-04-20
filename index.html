@@ -36,7 +36,6 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
   }
 
-  /* ── Card ── */
   #chat-container {
     background: var(--surface);
     width: 100%;
@@ -58,7 +57,6 @@
     to   { opacity: 1; transform: translateY(0) scale(1); }
   }
 
-  /* ── Header ── */
   header {
     padding: 16px 20px;
     border-bottom: 1px solid var(--border);
@@ -98,7 +96,6 @@
     flex-shrink: 0;
   }
 
-  /* ── Messages ── */
   #messages {
     flex: 1;
     padding: 20px 16px;
@@ -157,13 +154,12 @@
 
   .message.user .msg-time { text-align: right; }
 
-  /* ── Boutons de choix ── */
   .buttons-wrap {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-top: 10px;
-    max-width: 85%;
+    margin-top: 4px;
+    max-width: 90%;
     align-self: flex-start;
     animation: msgIn 0.3s cubic-bezier(0.16,1,0.3,1) both;
     animation-delay: 0.1s;
@@ -183,18 +179,11 @@
     white-space: nowrap;
   }
 
-  .choice-btn:hover {
-    background: var(--blue);
-    color: #fff;
-  }
+  .choice-btn:hover { background: var(--blue); color: #fff; }
+  .choice-btn:active { transform: scale(0.95); }
 
-  .choice-btn:active {
-    transform: scale(0.95);
-  }
-
-  .choice-btn:disabled,
   .buttons-wrap.used .choice-btn {
-    opacity: 0.35;
+    opacity: 0.3;
     pointer-events: none;
   }
 
@@ -204,7 +193,6 @@
     color: #fff;
   }
 
-  /* ── Typing ── */
   .typing-bubble {
     align-self: flex-start;
     background: var(--blue-lt);
@@ -227,11 +215,10 @@
   .typing-bubble span:nth-child(3) { animation-delay: 0.4s; }
 
   @keyframes bounce {
-    0%,80%,100% { transform: translateY(0);    opacity: 0.45; }
+    0%,80%,100% { transform: translateY(0); opacity: 0.45; }
     40%          { transform: translateY(-5px); opacity: 1; }
   }
 
-  /* ── Input ── */
   #input-area {
     padding: 12px 14px;
     border-top: 1px solid var(--border);
@@ -321,23 +308,37 @@
 </div>
 
 <script>
-const webhookUrl = "https://hook.eu1.make.com/gtp3ev2lmkcxbt8tos0rnr3q9xf6b5jg";
-const messagesDiv = document.getElementById("messages");
-const inputEl     = document.getElementById("input");
-const sendBtn     = document.getElementById("send-btn");
+// ── Config ──────────────────────────────────────────────
+const WEBHOOK_URL = "https://hook.eu1.make.com/gtp3ev2lmkcxbt8tos0rnr3q9xf6b5jg";
+const OPENAI_KEY  = "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"; // ta clé OpenAI
+const CALENDLY    = "https://calendly.com/contact-claritysystems/prise-de-rendez-vous";
 
-// Session
+// ── Session ─────────────────────────────────────────────
 let sessionId = localStorage.getItem("session_id");
 if (!sessionId) {
   sessionId = Date.now() + "-" + Math.random().toString(36).substring(2);
   localStorage.setItem("session_id", sessionId);
 }
 
+// ── Données collectées ───────────────────────────────────
+const prospect = {
+  role: null,
+  besoin: null,
+  scope: null,   // "in_scope" ou "hors_scope" — déterminé par GPT
+  urgence: null,
+  taille: null
+};
+
+// ── Éléments DOM ────────────────────────────────────────
+const messagesDiv = document.getElementById("messages");
+const inputEl     = document.getElementById("input");
+const sendBtn     = document.getElementById("send-btn");
+
+// ── Helpers ─────────────────────────────────────────────
 function now() {
   return new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 }
 
-// Ajouter un message texte
 function addMessage(text, sender) {
   const wrap = document.createElement("div");
   wrap.className = "message " + sender;
@@ -356,12 +357,9 @@ function addMessage(text, sender) {
   wrap.appendChild(time);
   messagesDiv.appendChild(wrap);
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
-  return wrap;
 }
 
-// Ajouter des boutons de choix
-function addButtons(options) {
-  // Supprimer les anciens boutons actifs s'il en reste
+function addButtons(options, handler) {
   const existing = document.getElementById("active-buttons");
   if (existing) existing.remove();
 
@@ -373,7 +371,15 @@ function addButtons(options) {
     const btn = document.createElement("button");
     btn.className = "choice-btn";
     btn.textContent = label;
-    btn.onclick = () => handleChoice(label, wrap);
+    btn.onclick = () => {
+      wrap.id = "";
+      wrap.classList.add("used");
+      wrap.querySelectorAll(".choice-btn").forEach(b => {
+        if (b.textContent === label) b.classList.add("selected");
+      });
+      addMessage(label, "user");
+      handler(label);
+    };
     wrap.appendChild(btn);
   });
 
@@ -381,39 +387,6 @@ function addButtons(options) {
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
-// Quand l'utilisateur clique sur un bouton
-function handleChoice(label, wrap) {
-  // Marquer les boutons comme utilisés
-  wrap.id = "";
-  wrap.classList.add("used");
-  wrap.querySelectorAll(".choice-btn").forEach(b => {
-    if (b.textContent === label) b.classList.add("selected");
-  });
-
-  // Afficher comme message utilisateur
-  addMessage(label, "user");
-
-  // Gérer les boutons initiaux localement sans appeler Make
-  if (label === "C'est parti !") {
-    setTimeout(() => {
-      addMessage("Vous êtes dans quelle situation ?", "assistant");
-      addButtons(["Dirigeant / Patron", "Responsable / Manager", "Salarié", "Autre"]);
-    }, 400);
-    return;
-  }
-
-  if (label === "Non merci") {
-    setTimeout(() => {
-      addMessage("Pas de souci ! N'hésitez pas à nous recontacter quand vous le souhaitez 😊", "assistant");
-    }, 400);
-    return;
-  }
-
-  // Tous les autres boutons → envoyer au webhook
-  sendToWebhook(label);
-}
-
-// Typing indicator
 function showTyping() {
   const el = document.createElement("div");
   el.className = "typing-bubble";
@@ -428,60 +401,186 @@ function removeTyping() {
   if (el) el.remove();
 }
 
-// Envoi au webhook Make
-function sendToWebhook(message) {
-  sendBtn.disabled = true;
-  showTyping();
+function delay(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
 
-  fetch(webhookUrl, {
+async function botSay(text, ms = 600) {
+  await delay(ms);
+  addMessage(text, "assistant");
+}
+
+// ── Désactiver / activer la saisie ──────────────────────
+function disableInput() {
+  inputEl.disabled = true;
+  sendBtn.disabled = true;
+  inputEl.placeholder = "Utilisez les boutons ci-dessus…";
+}
+
+function enableInput() {
+  inputEl.disabled = false;
+  sendBtn.disabled = false;
+  inputEl.placeholder = "Écrivez votre message…";
+}
+
+// ── Analyse du besoin par GPT ────────────────────────────
+async function analyseBesoingGPT(besoin) {
+  const systemPrompt = `Tu es un assistant de qualification pour Clarity Systems.
+Nos services : automatisation administrative (emails, devis, factures, relances, planning, rappels RDV), agents IA sur mesure (chatbot, qualification prospects, support client, collecte d'infos), agent vocal, création de contenu réseaux sociaux, suivi automatisé des équipements.
+Hors scope : développement web, recrutement, comptabilité, juridique, formation, travaux, logistique.
+
+Analyse le besoin suivant et réponds UNIQUEMENT avec un JSON valide sans markdown :
+{ "scope": "in_scope" ou "hors_scope", "besoin_resume": "résumé court du besoin en 5 mots max" }`;
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${OPENAI_KEY}`
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: besoin }
+      ],
+      temperature: 0.1
+    })
+  });
+
+  const data = await response.json();
+  const text = data.choices[0].message.content.trim();
+  const clean = text.replace(/```json|```/g, "").trim();
+  return JSON.parse(clean);
+}
+
+// ── Envoi final à Make ───────────────────────────────────
+async function envoyerAMake(qualification) {
+  await fetch(WEBHOOK_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ session_id: sessionId, message })
-  })
-  .then(async res => {
-    let data;
-    try { data = await res.json(); }
-    catch { data = { reply: await res.text() }; }
-
-    removeTyping();
-
-    // Gérer tableau ou objet simple
-    const items = Array.isArray(data) ? data : [data];
-
-    items.forEach(item => {
-      if (item.reply) addMessage(item.reply, "assistant");
-      if (item.buttons && Array.isArray(item.buttons) && item.buttons.length > 0) {
-        addButtons(item.buttons);
-      }
-    });
-  })
-  .catch(() => {
-    removeTyping();
-    addMessage("Une erreur est survenue. Merci de réessayer.", "assistant");
-  })
-  .finally(() => {
-    sendBtn.disabled = false;
-    inputEl.focus();
+    body: JSON.stringify({
+      session_id: sessionId,
+      qualification,
+      role: prospect.role,
+      besoin: prospect.besoin,
+      urgence: prospect.urgence,
+      taille: prospect.taille,
+      sms: qualification === "qualifie"
+    })
   });
 }
 
-// Envoi depuis le champ texte
-function send() {
+// ── FLOW DE CONVERSATION ─────────────────────────────────
+
+function step_accueil() {
+  addMessage("Bonjour ! Vous avez tenté de nous joindre il y a quelques instants 📞\nJe suis l'assistant de Clarity Systems — quelques questions rapides suffisent pour que notre équipe vous rappelle dans les meilleures conditions. Prêt(e) ?", "assistant");
+  addButtons(["C'est parti !", "Non merci"], (choix) => {
+    if (choix === "Non merci") {
+      setTimeout(() => {
+        addMessage("Pas de souci ! N'hésitez pas à nous recontacter quand vous le souhaitez 😊", "assistant");
+        envoyerAMake("non_qualifie");
+      }, 400);
+    } else {
+      setTimeout(() => step_role(), 400);
+    }
+  });
+  disableInput();
+}
+
+async function step_role() {
+  await botSay("Vous êtes dans quelle situation ?");
+  addButtons(["Dirigeant / Patron", "Responsable / Manager", "Salarié", "Autre"], (choix) => {
+    prospect.role = choix;
+    if (choix === "Salarié") {
+      setTimeout(() => step_non_qualifie_salarie(), 400);
+    } else {
+      setTimeout(() => step_besoin(), 400);
+    }
+  });
+}
+
+async function step_besoin() {
+  await botSay("Parfait ! Et qu'est-ce qui vous a amené à nous appeler ? Décrivez votre besoin en quelques mots 😊");
+  enableInput();
+}
+
+async function step_urgence() {
+  disableInput();
+  await botSay("C'est pour quand, idéalement ?");
+  addButtons(["Le plus tôt possible", "Dans les 3 mois", "Je réfléchis encore"], (choix) => {
+    prospect.urgence = choix;
+    setTimeout(() => step_taille(), 400);
+  });
+}
+
+async function step_taille() {
+  await botSay("Vous avez combien de personnes dans votre équipe ?");
+  addButtons(["Seul(e)", "2 à 10 personnes", "10 à 50 personnes", "Plus de 50"], (choix) => {
+    prospect.taille = choix;
+    setTimeout(() => step_qualification(), 400);
+  });
+}
+
+async function step_qualification() {
+  // Logique de qualification finale
+  const decisionOk = prospect.scope === "in_scope";
+  const urgenceOk  = prospect.urgence !== "Je réfléchis encore";
+
+  if (!decisionOk) {
+    await step_hors_scope();
+  } else if (!urgenceOk) {
+    await step_non_qualifie_reflexion();
+  } else {
+    await step_qualifie();
+  }
+}
+
+async function step_qualifie() {
+  await botSay("Parfait, votre projet correspond exactement à ce que nous faisons chez Clarity Systems 🎯\nNotre équipe va vous recontacter très prochainement. En attendant, vous pouvez réserver directement un créneau dans notre agenda 👇");
+  await delay(600);
+  addMessage(CALENDLY, "assistant");
+  await envoyerAMake("qualifie");
+}
+
+async function step_hors_scope() {
+  await botSay("Merci pour ces précisions ! Honnêtement, votre besoin ne correspond pas à nos services — nous sommes spécialisés dans l'automatisation et les agents IA pour les dirigeants.\nJe ne voudrais pas vous faire perdre votre temps. N'hésitez pas à revenir vers nous si votre situation évolue 🙏");
+  await envoyerAMake("hors_scope");
+}
+
+async function step_non_qualifie_salarie() {
+  await botSay("Merci pour votre temps ! Nous travaillons principalement avec des dirigeants sur des projets concrets. N'hésitez pas à en parler avec votre responsable et à nous recontacter si besoin 😊");
+  await envoyerAMake("non_qualifie");
+}
+
+async function step_non_qualifie_reflexion() {
+  await botSay("Merci pour votre temps ! Votre demande est bien notée. N'hésitez pas à nous recontacter quand votre projet est plus avancé — nous serons ravis d'échanger 😊");
+  await envoyerAMake("non_qualifie");
+}
+
+// ── Gestion de l'envoi texte libre (besoin) ─────────────
+async function send() {
   const message = inputEl.value.trim();
   if (!message) return;
-
-  // Désactiver les boutons actifs s'il y en a
-  const activeButtons = document.getElementById("active-buttons");
-  if (activeButtons) {
-    activeButtons.id = "";
-    activeButtons.classList.add("used");
-  }
 
   addMessage(message, "user");
   inputEl.value = "";
   inputEl.style.height = "auto";
+  disableInput();
 
-  sendToWebhook(message);
+  prospect.besoin = message;
+
+  // GPT analyse le besoin
+  showTyping();
+  try {
+    const result = await analyseBesoingGPT(message);
+    prospect.scope = result.scope;
+  } catch(e) {
+    prospect.scope = "in_scope"; // fallback si erreur GPT
+  }
+  removeTyping();
+
+  await step_urgence();
 }
 
 // Auto-resize textarea
@@ -490,17 +589,15 @@ inputEl.addEventListener("input", () => {
   inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + "px";
 });
 
-// Message d'accueil + boutons initiaux
-addMessage("Bonjour ! Vous avez tenté de nous joindre il y a quelques instants 📞\nJe suis l'assistant de Clarity Systems — quelques questions rapides suffisent pour que notre équipe vous rappelle dans les meilleures conditions. Prêt(e) ?", "assistant");
-addButtons(["C'est parti !", "Non merci"]);
-
-// Enter = envoyer
 inputEl.addEventListener("keydown", e => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
     send();
   }
 });
+
+// ── Démarrage ────────────────────────────────────────────
+step_accueil();
 </script>
 
 </body>
